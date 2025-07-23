@@ -176,101 +176,133 @@ void    execute_piped_external(t_command    command, char *path,t_data    *data)
 
 int launch_pipeline(t_data *data)
 {
-	pid_t *pids = malloc(sizeof(pid_t) * data->cmd_count);
-	if (!pids)
-		return (false);
+    int pipes[data->cmd_count - 1][2];
+    pid_t *pids = malloc(sizeof(pid_t) * data->cmd_count);
+    if (!pids)
+        return (false);
 
-	for (int i = 0; i < data->cmd_count; i++)
-	{
-		pids[i] = fork();
-		if (pids[i] == -1)
-		{
-			perror("fork");
-			exit(EXIT_FAILURE);
-		}
-		else if (pids[i] == 0)
-		{
-			// Setup pipe read end
-			if (data->commands[i].pipe_in != -1)
-			{
-				dup2(data->commands[i].pipe_in, STDIN_FILENO);
-			}
-			// Setup pipe write end
-			if (data->commands[i].pipe_out != -1)
-			{
-				dup2(data->commands[i].pipe_out, STDOUT_FILENO);
-			}
+    // Create all pipes first
+    for (int i = 0; i < data->cmd_count - 1; i++)
+    {
+        if (pipe(pipes[i]) == -1)
+        {
+            perror("pipe");
+            exit(EXIT_FAILURE);
+        }
+    }
 
-			// Close all unused pipes in the child
-			for (int j = 0; j < data->cmd_count; j++)
-			{
-				if (data->commands[j].pipe_in != -1)
-					close(data->commands[j].pipe_in);
-				if (data->commands[j].pipe_out != -1)
-					close(data->commands[j].pipe_out);
-			}
+    for (int i = 0; i < data->cmd_count; i++)
+    {
+        pids[i] = fork();
+        if (pids[i] == -1)
+        {
+            perror("fork");
+            exit(EXIT_FAILURE);
+        }
+        else if (pids[i] == 0)
+        {
+            // Child: setup STDIN/STDOUT from pipes/heredoc
+            if (data->commands[i].pipe_in != -1) {
+                dup2(data->commands[i].pipe_in, STDIN_FILENO);
+            } else if (i > 0) {
+                dup2(pipes[i - 1][0], STDIN_FILENO);
+            }
+            if (i < data->cmd_count - 1) {
+                dup2(pipes[i][1], STDOUT_FILENO);
+            }
 
-			apply_redirections(&data->commands[i]);
+            // Close all pipe fds in child
+            for (int j = 0; j < data->cmd_count - 1; j++) {
+                close(pipes[j][0]);
+                close(pipes[j][1]);
+            }
+            // Close heredoc pipes in child
+            for (int j = 0; j < data->cmd_count; j++) {
+                if (data->commands[j].pipe_in != -1)
+                    close(data->commands[j].pipe_in);
+            }
 
-			if (isbuilt_in(data->commands[i]))
-			{
-				execute_builtin(data->commands[i], data);
-				exit(data->last_status);
-			}
-			else
-			{
-				char *path = find_command_path(data->commands[i].args[0], data->env);
-				if (!path)
-				{
-					write(2, data->commands[i].args[0], ft_strlen(data->commands[i].args[0]));
-					write(2, ": command not found\n", 20);
-					exit(127);
-				}
-				execve(path, data->commands[i].args, data->env);
-				perror("execve");
-				exit(127);
-			}
-		}
-	}
+            // Now apply only file redirections that do NOT conflict with pipes/heredoc
+            for (int r = 0; r < data->commands[i].redir_count; r++) {
+                int type = data->commands[i].redirs[r].type;
+                char *file = data->commands[i].redirs[r].file;
+                int fd;
+                // Only apply input redirection if STDIN not already set by heredoc/pipe
+                if (type == REDIR_IN && data->commands[i].pipe_in == -1 && i == 0 && data->cmd_count == 1) {
+                    // Only for single command, not pipeline
+                    fd = open(file, O_RDONLY);
+                    if (fd < 0) { perror(file); exit(ERR_CMD_PERMISSION); }
+                    if (dup2(fd, STDIN_FILENO) == -1) { perror("dup2"); close(fd); exit(ERR_GENERAL); }
+                    close(fd);
+                }
+                // Only apply output redirection if STDOUT not already set by pipe
+                if ((type == REDIR_OUT || type == REDIR_APPEND) && i == data->cmd_count - 1) {
+                    int flags = (type == REDIR_OUT) ? (O_WRONLY | O_CREAT | O_TRUNC) : (O_WRONLY | O_CREAT | O_APPEND);
+                    fd = open(file, flags, 0644);
+                    if (fd < 0) { perror(file); exit(ERR_CMD_PERMISSION); }
+                    if (dup2(fd, STDOUT_FILENO) == -1) { perror("dup2"); close(fd); exit(ERR_GENERAL); }
+                    close(fd);
+                }
+            }
 
-	// Parent closes all pipe ends
-	for (int i = 0; i < data->cmd_count; i++)
-	{
-		if (data->commands[i].pipe_in != -1)
-			close(data->commands[i].pipe_in);
-		if (data->commands[i].pipe_out != -1)
-			close(data->commands[i].pipe_out);
-	}
+            if (isbuilt_in(data->commands[i]))
+            {
+                execute_builtin(data->commands[i], data);
+                exit(data->last_status);
+            }
+            else
+            {
+                char *path = find_command_path(data->commands[i].args[0], data->env);
+                if (!path)
+                {
+                    write(2, data->commands[i].args[0], ft_strlen(data->commands[i].args[0]));
+                    write(2, ": command not found\n", 20);
+                    exit(127);
+                }
+                execve(path, data->commands[i].args, data->env);
+                perror("execve");
+                exit(127);
+            }
+        }
+    }
 
-	// Wait for children
-	for (int i = 0; i < data->cmd_count; i++)
-	{
-		int status;
-		waitpid(pids[i], &status, 0);
-		if (i == data->cmd_count - 1)
-		{
-			if (WIFEXITED(status))
-				data->last_status = WEXITSTATUS(status);
-			else if (WIFSIGNALED(status))
-				data->last_status = 128 + WTERMSIG(status);
-		}
-	}
-	free(pids);
-	return (true);
+    // Parent: close all pipe ends after forking
+    for (int i = 0; i < data->cmd_count - 1; i++) {
+        close(pipes[i][0]);
+        close(pipes[i][1]);
+    }
+    // Parent: close heredoc pipes
+    for (int i = 0; i < data->cmd_count; i++) {
+        if (data->commands[i].pipe_in != -1)
+            close(data->commands[i].pipe_in);
+    }
+
+    // Wait for children
+    for (int i = 0; i < data->cmd_count; i++)
+    {
+        int status;
+        waitpid(pids[i], &status, 0);
+        if (i == data->cmd_count - 1)
+        {
+            if (WIFEXITED(status))
+                data->last_status = WEXITSTATUS(status);
+            else if (WIFSIGNALED(status))
+                data->last_status = 128 + WTERMSIG(status);
+        }
+    }
+    free(pids);
+    return (true);
 }
-
-
 
 
 void pipe_init(t_data *data)
 {
-	int i;
-
-	for (i = 0; i < data->cmd_count; i++)
-	{
-		data->commands[i].pipe_in = -1;
-		data->commands[i].pipe_out = -1;
-	}
+    int i;
+    for (i = 0; i < data->cmd_count; i++)
+    {
+        data->commands[i].pipe_in = -1;
+        data->commands[i].pipe_out = -1;
+    }
 }
 
 

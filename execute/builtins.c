@@ -126,20 +126,17 @@ void echo(t_command data, int *last_status)
     // print args
     while (data.args[i])
     {
-        printf("%s", data.args[i]);
+        write(1, data.args[i], ft_strlen(data.args[i]));
         if (data.args[i + 1])
-            printf(" ");
+            write(1, " ", 1);
         i++;
     }
 
     if (newline)
-        printf("\n");
-
-    fflush(stdout); // flush output for pipes and files
+        write(1, "\n", 1);
 
     *last_status = 0;
 }
-
 
 void pwd(t_data *data)
 {
@@ -150,8 +147,8 @@ void pwd(t_data *data)
         data->last_status = 1;
         return;
     }
-    printf("%s\n", path);
-    fflush(stdout); // flush output for pipes and files
+    write(1, path, ft_strlen(path));
+    write(1, "\n", 1);
     data->last_status = 0;
     free(path);
 }
