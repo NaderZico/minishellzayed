@@ -17,7 +17,7 @@
  
 	 while (built[i])
 	 {
-		 if (ft_strncmp(built[i], cmp, ft_strlen(cmp)) == 0)
+		 if (ft_strcmp(built[i], cmp) == 0)
 			 return 1;
 		 i++;
 	 }
@@ -356,15 +356,19 @@ void    exit_builtin(t_command command, t_data  *data)
     }
 }
 
-void    execute_builtin(t_command command, t_data *data)
+void execute_builtin(t_command command, t_data *data)
 {
     char *built[8] = {"echo","cd","pwd","export","unset","env","exit", NULL};
-    int i;
-    i = 0;
-    while (ft_strncmp(built[i], command.args[0], ft_strlen(built[i]))!= 0)
+    int i = 0;
+    while (built[i] && ft_strcmp(built[i], command.args[0]) != 0)
         i++;
+    if (!built[i]) {
+        printf("%s: command not found\n", command.args[0]);
+        data->last_status = 127;
+        return;
+    }
     if (i == 0)
-        echo(command, &data->last_status);// 
+        echo(command, &data->last_status);
     else if (i == 1)
         cd(command, data);
     else if (i == 2)
@@ -377,6 +381,4 @@ void    execute_builtin(t_command command, t_data *data)
     //     env();
     else if (i == 6)
         exit_builtin(command, data);
-    else
-        printf("command is not exist");
 }

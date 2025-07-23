@@ -227,9 +227,8 @@ int launch_pipeline(t_data *data)
                 int type = data->commands[i].redirs[r].type;
                 char *file = data->commands[i].redirs[r].file;
                 int fd;
-                // Only apply input redirection if STDIN not already set by heredoc/pipe
-                if (type == REDIR_IN && data->commands[i].pipe_in == -1 && i == 0 && data->cmd_count == 1) {
-                    // Only for single command, not pipeline
+                // Apply input redirection for first command if not set by heredoc/pipe
+                if (type == REDIR_IN && data->commands[i].pipe_in == -1 && i == 0) {
                     fd = open(file, O_RDONLY);
                     if (fd < 0) { perror(file); exit(ERR_CMD_PERMISSION); }
                     if (dup2(fd, STDIN_FILENO) == -1) { perror("dup2"); close(fd); exit(ERR_GENERAL); }

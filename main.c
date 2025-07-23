@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/27 14:53:55 by nakhalil          #+#    #+#             */
-/*   Updated: 2025/07/22 12:28:02 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/07/23 11:55:14 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,6 +122,7 @@ int	main(int argc, char **argv, char **envp)
 			add_history(input);
 
 			err = tokenize_input(input, &data);
+			// debug_print_tokens(&data); // ← Debug tokens after tokenization
 			if (err != SUCCESS)
 				handle_error(err, &data, "tokenization");
 			else if ((err = validate_syntax(&data)) != SUCCESS)
@@ -130,8 +131,10 @@ int	main(int argc, char **argv, char **envp)
 				handle_error(err, &data, "expand");
 			else if ((err = parse_tokens(&data)) != SUCCESS)
 				handle_error(err, &data, "parse");
-			else
+			else {
+				// debug_print_commands(&data); // ← Debug commands after parsing
 				execute_commands(&data);
+			}
 
 			// Restore signals after execution
 			setup_signals();
