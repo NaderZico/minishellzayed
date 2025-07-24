@@ -221,7 +221,7 @@ static int precheck_all_redirections(t_data *data, int *redir_error)
             if (type == REDIR_OUT) {
                 fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
                 if (fd < 0) {
-                    write(2, "bash: ", 6);
+                    write(2, "minishell: ", 6);
                     write(2, file, ft_strlen(file));
                     write(2, ": ", 2);
                     perror("");
@@ -232,7 +232,7 @@ static int precheck_all_redirections(t_data *data, int *redir_error)
             } else if (type == REDIR_APPEND) {
                 fd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0644);
                 if (fd < 0) {
-                    write(2, "bash: ", 6);
+                    write(2, "minishell: ", 6);
                     write(2, file, ft_strlen(file));
                     write(2, ": ", 2);
                     perror("");
@@ -243,7 +243,7 @@ static int precheck_all_redirections(t_data *data, int *redir_error)
             } else if (type == REDIR_IN) {
                 fd = open(file, O_RDONLY);
                 if (fd < 0) {
-                    write(2, "bash: ", 6);
+                    write(2, "minshell: ", 6);
                     write(2, file, ft_strlen(file));
                     write(2, ": No such file or directory\n", 28);
                     redir_error[i] = 1;
