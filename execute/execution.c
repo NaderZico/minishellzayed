@@ -148,7 +148,7 @@ void    execute_piped_external(t_command    command, char *path,t_data    *data)
     if (!path)
     {
         if (command.args[0] && ft_strchr(command.args[0], '/')) {
-            write(2, "bash: ", 6);
+            write(2, "minishell: ", 11);
             write(2, command.args[0], ft_strlen(command.args[0]));
             write(2, ": No such file or directory\n", 28);
         } else {
@@ -156,6 +156,13 @@ void    execute_piped_external(t_command    command, char *path,t_data    *data)
             write(2, ": command not found\n", 20);
         }
         exit(127);
+    }
+    if (path == (char *)-2)
+    {
+        write(2, "minishell: ", 11);
+        write(2, command.args[0], ft_strlen(command.args[0]));
+        write(2, ": Permission denied\n", 20);
+        exit(126);
     }
     if (path == (char *)-1)
     {
@@ -261,7 +268,7 @@ int launch_pipeline(t_data *data)
                 if (!path)
                 {
                     if (data->commands[i].args && ft_strchr(data->commands[i].args[0], '/')) {
-                        write(2, "bash: ", 6);
+                        write(2, "minishell: ", 11);
                         write(2, data->commands[i].args[0], ft_strlen(data->commands[i].args[0]));
                         write(2, ": No such file or directory\n", 28);
                     } else if (data->commands[i].args) {
@@ -269,6 +276,13 @@ int launch_pipeline(t_data *data)
                         write(2, ": command not found\n", 20);
                     }
                     exit(127);
+                }
+                if (path == (char *)-2)
+                {
+                    write(2, "minishell: ", 11);
+                    write(2, data->commands[i].args[0], ft_strlen(data->commands[i].args[0]));
+                    write(2, ": Permission denied\n", 20);
+                    exit(126);
                 }
                 if (path == (char *)-1)
                 {
@@ -378,7 +392,7 @@ void execute_commands(t_data *data)
 					if (!path)
 					{
 						if (cmd->args && ft_strchr(cmd->args[0], '/')) {
-							ft_putstr_fd("bash: ", 2);
+							ft_putstr_fd("minishell: ", 2);
 							ft_putstr_fd(cmd->args[0], 2);
 							ft_putstr_fd(": No such file or directory\n", 2);
 						} else if (cmd->args) {
@@ -386,6 +400,13 @@ void execute_commands(t_data *data)
 							ft_putstr_fd(": command not found\n", 2);
 						}
 						exit(127);
+					}
+					if (path == (char *)-2)
+					{
+						ft_putstr_fd("minishell: ", 2);
+						ft_putstr_fd(cmd->args[0], 2);
+						ft_putstr_fd(": Permission denied\n", 2);
+						exit(126);
 					}
 					if (path == (char *)-1)
 					{

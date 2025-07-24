@@ -5,7 +5,7 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/27 15:12:33 by nakhalil          #+#    #+#             */
+/*   Created: 2025/04/27 15:12:33 by nakhalil          #+#             */
 /*   Updated: 2025/07/24 12:20:47 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
@@ -104,6 +104,46 @@ static t_error	handle_quotes(char *input, int *i, t_data *data)
 		return (ERR_MALLOC);
 	(*i)++;
 	return (add_token(data, value, WORD, quote_type));
+}
+
+/*
+ * Split input string on unquoted delimiter (e.g., '\n' or ';').
+ * Returns a NULL-terminated array of strings.
+ */
+char **split_unquoted(const char *input, char delim)
+{
+	int i = 0, start = 0, count = 0, len = ft_strlen(input);
+	t_quote quote = NO_QUOTE;
+	char **result = NULL;
+
+	// First pass: count splits
+	while (i < len)
+	{
+		if ((input[i] == '\'' || input[i] == '"'))
+			quote = update_quote_state(quote, input[i]);
+		if (input[i] == delim && quote == NO_QUOTE)
+			count++;
+		i++;
+	}
+	result = malloc(sizeof(char *) * (count + 2));
+	if (!result)
+		return NULL;
+
+	// Second pass: extract substrings
+	i = 0; int idx = 0; quote = NO_QUOTE;
+	while (i <= len)
+	{
+		if ((input[i] == '\'' || input[i] == '"'))
+			quote = update_quote_state(quote, input[i]);
+		if ((input[i] == delim && quote == NO_QUOTE) || input[i] == '\0')
+		{
+			result[idx++] = ft_substr(input, start, i - start);
+			start = i + 1;
+		}
+		i++;
+	}
+	result[idx] = NULL;
+	return result;
 }
 
 /*

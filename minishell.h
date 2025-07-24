@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 17:52:08 by nakhalil          #+#    #+#             */
-/*   Updated: 2025/07/24 12:20:47 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/07/24 13:03:20 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,8 @@ t_error		parse_tokens(t_data *data);
 t_error		validate_syntax(t_data *data);
 t_error		expand_tokens(t_data *data);
 void		setup_signals(void);
-char	*get_env_value(char *name, char **env);
+char		*get_env_value(char *name, char **env);
+char		**split_unquoted(const char *input, char delim);
 
 /* utils */
 void		*safe_malloc(size_t size);

@@ -5,7 +5,7 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/27 14:53:55 by nakhalil          #+#    #+#             */
+/*   Created: 2025/04/27 14:53:55 by nakhalil          #+#             */
 /*   Updated: 2025/07/24 11:34:49 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
@@ -127,20 +127,33 @@ int	main(int argc, char **argv, char **envp)
 		{
 			add_history(input);
 
-			err = tokenize_input(input, &data);
-// debug_print_tokens(&data); // ← Debug tokens after tokenization
-			if (err != SUCCESS)
-				handle_error(err, &data, "tokenization");
-			else if ((err = validate_syntax(&data)) != SUCCESS)
-				handle_error(err, &data, NULL);
-			else if ((err = expand_tokens(&data)) != SUCCESS)
-				handle_error(err, &data, "expand");
-			else if ((err = parse_tokens(&data)) != SUCCESS)
-				handle_error(err, &data, "parse");
-			else {
-// debug_print_commands(&data); // ← Debug commands after parsing
-				execute_commands(&data);
+			// Split input on unquoted newlines and semicolons
+			char **lines = split_unquoted(input, '\n');
+			for (int l = 0; lines && lines[l]; l++)
+			{
+				char **cmds = split_unquoted(lines[l], ';');
+				for (int c = 0; cmds && cmds[c]; c++)
+				{
+					if (ft_strtrim(cmds[c], " \t\r")) // skip empty
+					{
+						err = tokenize_input(cmds[c], &data);
+						if (err != SUCCESS)
+							handle_error(err, &data, "tokenization");
+						else if ((err = validate_syntax(&data)) != SUCCESS)
+							handle_error(err, &data, NULL);
+						else if ((err = expand_tokens(&data)) != SUCCESS)
+							handle_error(err, &data, "expand");
+						else if ((err = parse_tokens(&data)) != SUCCESS)
+							handle_error(err, &data, "parse");
+						else
+							execute_commands(&data);
+					}
+					free(cmds[c]);
+				}
+				free(cmds);
+				free(lines[l]);
 			}
+			free(lines);
 
 			setup_signals();
 
