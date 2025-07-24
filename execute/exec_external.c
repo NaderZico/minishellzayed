@@ -5,13 +5,6 @@
  *   Search PATH for cmd->args[0], check access(), and execve().
  *   On failure, print perror and set *last_status to 127.
  */
-#include "execute.h"
-
-/*
- * exec_external
- *   Search PATH for cmd->args[0], check access(), and execve().
- *   On failure, print perror and set *last_status to 127.
- */
 
 void ft_free_split(char **arr)
 {
@@ -60,8 +53,10 @@ char *find_command_path(const char *cmd, char **envp)
     {
         if (access(cmd, X_OK) == 0)
             return (ft_strdup(cmd));
-        else
-            return (NULL);
+        // If file exists but not executable, return special marker
+        if (access(cmd, F_OK) == 0)
+            return (char *)-1; // Permission denied
+        return NULL; // Not found
     }
 
     // Find PATH in envp
@@ -93,7 +88,6 @@ char *find_command_path(const char *cmd, char **envp)
         i++;
     }
 
-    // Clean up
     ft_free_split(paths);
-    return (full_path);
+    return (full_path); // NULL if not found
 }

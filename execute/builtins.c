@@ -391,7 +391,9 @@ void execute_builtin(t_command command, t_data *data)
     while (built[i] && ft_strcmp(built[i], command.args[0]) != 0)
         i++;
     if (!built[i]) {
-        printf("%s: command not found\n", command.args[0]);
+        // Print error message to stderr, matching bash
+        write(2, command.args[0], ft_strlen(command.args[0]));
+        write(2, ": command not found\n", 20);
         data->last_status = 127;
         return;
     }

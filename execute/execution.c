@@ -1,4 +1,5 @@
 #include "execute.h"
+#include <errno.h>
 /*
  * apply_redirections
  *   - Loop over cmd->redirs[], open FDs, dup2() to STDIN/STDOUT, close originals.
@@ -34,7 +35,7 @@ void apply_redirections(t_command *cmd)
             if (fd < 0)
             {
                 perror(cmd->redirs[i].file);
-                exit(ERR_CMD_PERMISSION);
+                exit(ERR_GENERAL);
             }
             if (dup2(fd, STDIN_FILENO) == -1)
             {
@@ -50,7 +51,7 @@ void apply_redirections(t_command *cmd)
             if (fd < 0)
             {
                 perror(cmd->redirs[i].file);
-                exit(ERR_CMD_PERMISSION);
+                exit(ERR_GENERAL);
             }
             if (dup2(fd, STDOUT_FILENO) == -1)
             {
@@ -66,7 +67,7 @@ void apply_redirections(t_command *cmd)
             if (fd < 0)
             {
                 perror(cmd->redirs[i].file);
-                exit(ERR_CMD_PERMISSION);
+                exit(ERR_GENERAL);
             }
             if (dup2(fd, STDOUT_FILENO) == -1)
             {
@@ -99,7 +100,7 @@ void apply_output_redirections(t_command *cmd)
             if (fd < 0)
             {
                 perror(cmd->redirs[i].file);
-                exit(ERR_CMD_PERMISSION);
+                exit(ERR_GENERAL);
             }
             if (dup2(fd, STDOUT_FILENO) == -1)
             {
@@ -115,7 +116,7 @@ void apply_output_redirections(t_command *cmd)
             if (fd < 0)
             {
                 perror(cmd->redirs[i].file);
-                exit(ERR_CMD_PERMISSION);
+                exit(ERR_GENERAL);
             }
             if (dup2(fd, STDOUT_FILENO) == -1)
             {
@@ -144,16 +145,32 @@ void close_all_pipes(int pipes[][2], int cmd_count)
 
 void    execute_piped_external(t_command    command, char *path,t_data    *data)
 {
-
-		if (!path)
-		{
-			write(2, command.args[0], ft_strlen(command.args[0]));
-			write(2, ": command not found\n", 20);
-			exit(127);
-		}
-		execve(path, command.args, data->env);
-		perror(command.args[0]);
-		exit(127);
+    if (!path)
+    {
+        if (command.args[0] && ft_strchr(command.args[0], '/')) {
+            write(2, "bash: ", 6);
+            write(2, command.args[0], ft_strlen(command.args[0]));
+            write(2, ": No such file or directory\n", 28);
+        } else {
+            write(2, command.args[0], ft_strlen(command.args[0]));
+            write(2, ": command not found\n", 20);
+        }
+        exit(127);
+    }
+    if (path == (char *)-1)
+    {
+        write(2, command.args[0], ft_strlen(command.args[0]));
+        write(2, ": Permission denied\n", 20);
+        exit(126);
+    }
+    execve(path, command.args, data->env);
+    if (errno == EACCES)
+    {
+        perror(command.args[0]);
+        exit(126);
+    }
+    perror(command.args[0]);
+    exit(127);
 }
 
 
@@ -217,7 +234,7 @@ int launch_pipeline(t_data *data)
                 // Apply input redirection for first command if not set by heredoc/pipe
                 if (type == REDIR_IN && data->commands[i].pipe_in == -1 && i == 0) {
                     fd = open(file, O_RDONLY);
-                    if (fd < 0) { perror(file); exit(ERR_CMD_PERMISSION); }
+                    if (fd < 0) { perror(file); exit(ERR_GENERAL); }
                     if (dup2(fd, STDIN_FILENO) == -1) { perror("dup2"); close(fd); exit(ERR_GENERAL); }
                     close(fd);
                 }
@@ -225,7 +242,7 @@ int launch_pipeline(t_data *data)
                 if ((type == REDIR_OUT || type == REDIR_APPEND) && i == data->cmd_count - 1) {
                     int flags = (type == REDIR_OUT) ? (O_WRONLY | O_CREAT | O_TRUNC) : (O_WRONLY | O_CREAT | O_APPEND);
                     fd = open(file, flags, 0644);
-                    if (fd < 0) { perror(file); exit(ERR_CMD_PERMISSION); }
+                    if (fd < 0) { perror(file); exit(ERR_GENERAL); }
                     if (dup2(fd, STDOUT_FILENO) == -1) { perror("dup2"); close(fd); exit(ERR_GENERAL); }
                     close(fd);
                 }
@@ -243,12 +260,28 @@ int launch_pipeline(t_data *data)
                     path = find_command_path(data->commands[i].args[0], data->env);
                 if (!path)
                 {
-                    if (data->commands[i].args && data->commands[i].args[0])
+                    if (data->commands[i].args && ft_strchr(data->commands[i].args[0], '/')) {
+                        write(2, "bash: ", 6);
                         write(2, data->commands[i].args[0], ft_strlen(data->commands[i].args[0]));
-                    write(2, ": command not found\n", 20);
+                        write(2, ": No such file or directory\n", 28);
+                    } else if (data->commands[i].args) {
+                        write(2, data->commands[i].args[0], ft_strlen(data->commands[i].args[0]));
+                        write(2, ": command not found\n", 20);
+                    }
                     exit(127);
                 }
+                if (path == (char *)-1)
+                {
+                    write(2, data->commands[i].args[0], ft_strlen(data->commands[i].args[0]));
+                    write(2, ": Permission denied\n", 20);
+                    exit(126);
+                }
                 execve(path, data->commands[i].args, data->env);
+                if (errno == EACCES)
+                {
+                    perror(data->commands[i].args[0]);
+                    exit(126);
+                }
                 perror("execve");
                 exit(127);
             }
@@ -283,7 +316,6 @@ int launch_pipeline(t_data *data)
     return (true);
 }
 
-
 void pipe_init(t_data *data)
 {
     int i;
@@ -293,10 +325,6 @@ void pipe_init(t_data *data)
         data->commands[i].pipe_out = -1;
     }
 }
-
-
-
-#include "minishell.h"
 
 void execute_commands(t_data *data)
 {
@@ -349,12 +377,28 @@ void execute_commands(t_data *data)
 						path = find_command_path(cmd->args[0], data->env);
 					if (!path)
 					{
-						if (cmd->args && cmd->args[0])
+						if (cmd->args && ft_strchr(cmd->args[0], '/')) {
+							ft_putstr_fd("bash: ", 2);
 							ft_putstr_fd(cmd->args[0], 2);
-						ft_putstr_fd(": command not found\n", 2);
+							ft_putstr_fd(": No such file or directory\n", 2);
+						} else if (cmd->args) {
+							ft_putstr_fd(cmd->args[0], 2);
+							ft_putstr_fd(": command not found\n", 2);
+						}
 						exit(127);
 					}
+					if (path == (char *)-1)
+					{
+						ft_putstr_fd(cmd->args[0], 2);
+						ft_putstr_fd(": Permission denied\n", 2);
+						exit(126);
+					}
 					execve(path, cmd->args, data->env);
+					if (errno == EACCES)
+					{
+						perror(cmd->args[0]);
+						exit(126);
+					}
 					perror(cmd->args[0]);
 					exit(127);
 				}

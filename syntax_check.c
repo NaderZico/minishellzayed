@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 14:32:31 by nakhalil          #+#    #+#             */
-/*   Updated: 2025/05/24 18:38:38 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/07/24 12:21:27 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,12 +36,6 @@ static t_error	check_redirs(t_data *data)
 
 	if (data->token_count == 0)
 		return (SUCCESS);
-	if (data->tokens[0].type >= REDIR_IN
-		&& data->tokens[0].type <= REDIR_HEREDOC)
-	{
-		data->error_pos = 0;
-		return (ERR_SYNTAX);
-	}
 	i = 0;
 	return (check_redir_sequence(data, &i));
 }

@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/08 14:03:01 by nakhalil          #+#    #+#             */
-/*   Updated: 2025/05/24 18:38:36 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/07/24 12:21:27 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,12 +59,14 @@ t_error	check_redir_sequence(t_data *data, int *i)
 		if (data->tokens[*i].type >= REDIR_IN
 			&& data->tokens[*i].type <= REDIR_HEREDOC)
 		{
+			// Only error if not followed by a WORD
 			if (*i + 1 >= data->token_count
 				|| data->tokens[*i + 1].type != WORD)
 			{
 				print_unexpected_token(data->tokens[*i].type);
 				return (ERR_SYNTAX);
 			}
+			// Disallow consecutive redirections (e.g., '<< <')
 			if (*i > 0
 				&& data->tokens[*i - 1].type >= REDIR_IN
 				&& data->tokens[*i - 1].type
