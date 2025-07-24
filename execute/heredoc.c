@@ -51,7 +51,6 @@ int	found_heredoc(t_command *cmd, t_data *data, char *limiter)
 			line = readline("> ");
 			if (!line)
 			{
-				ft_putstr_fd("minishell: warning: heredoc delimited by EOF\n", 2);
 				break;
 			}
 			if (ft_strcmp(line, limiter) == 0)

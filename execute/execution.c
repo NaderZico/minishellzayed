@@ -161,7 +161,7 @@ void    execute_piped_external(t_command    command, char *path,t_data    *data)
     {
         write(2, "minishell: ", 11);
         write(2, command.args[0], ft_strlen(command.args[0]));
-        write(2, ": Permission denied\n", 20);
+        write(2, ": is a directory\n", 17);
         exit(126);
     }
     if (path == (char *)-1)
@@ -180,72 +180,110 @@ void    execute_piped_external(t_command    command, char *path,t_data    *data)
     exit(127);
 }
 
-
+/*
+ * launch_pipeline
+ * ---------------
+ * Executes a pipeline of commands (cmd1 | cmd2 | ... | cmdN).
+ * 
+ * - Pipes are created incrementally, not all at once, to avoid hitting system file descriptor limits.
+ * - For each command:
+ *     - If not the last command, create a pipe for its output.
+ *     - Fork a child process.
+ *         - In the child:
+ *             - Set up STDIN from the previous pipe (if not first command).
+ *             - Set up STDOUT to the current pipe (if not last command).
+ *             - Close all unused pipe ends immediately.
+ *             - Apply redirections as needed.
+ *             - Execute the command (builtin or external).
+ *         - In the parent:
+ *             - Close the previous pipe ends (they are no longer needed).
+ *             - Move the current pipe to be the "previous" for the next iteration.
+ * - After all children are forked, parent closes any remaining pipe ends and waits for all children.
+ * 
+ * This approach matches bash's behavior: it minimizes the number of open pipes at any time,
+ * allowing very large pipelines without hitting resource limits prematurely.
+ */
 int launch_pipeline(t_data *data)
 {
     if (!data || data->cmd_count <= 0)
         return (false);
-    int pipes[data->cmd_count - 1][2];
+
+    int prev_pipe[2] = {-1, -1};
+    int curr_pipe[2] = {-1, -1};
     pid_t *pids = malloc(sizeof(pid_t) * data->cmd_count);
     if (!pids)
-        return (false);
-
-    // Create all pipes first
-    for (int i = 0; i < data->cmd_count - 1; i++)
     {
-        if (pipe(pipes[i]) == -1)
-        {
-            perror("pipe");
-            exit(EXIT_FAILURE);
-        }
+        write(2, "minishell: malloc failed for pipeline\n", 38);
+        data->last_status = 2;
+        return (false);
     }
 
     for (int i = 0; i < data->cmd_count; i++)
     {
+        // Create pipe for next command if not last
+        if (i < data->cmd_count - 1)
+        {
+            if (pipe(curr_pipe) == -1)
+            {
+                perror("minishell: pipe");
+                data->last_status = 2;
+                free(pids);
+                // Close previous pipe if open
+                if (prev_pipe[0] != -1) close(prev_pipe[0]);
+                if (prev_pipe[1] != -1) close(prev_pipe[1]);
+                return (false);
+            }
+        }
+
         pids[i] = fork();
         if (pids[i] == -1)
         {
-            perror("fork");
-            exit(EXIT_FAILURE);
+            perror("minishell: fork");
+            data->last_status = 2;
+            // Close pipes
+            if (prev_pipe[0] != -1) close(prev_pipe[0]);
+            if (prev_pipe[1] != -1) close(prev_pipe[1]);
+            if (curr_pipe[0] != -1) close(curr_pipe[0]);
+            if (curr_pipe[1] != -1) close(curr_pipe[1]);
+            free(pids);
+            return (false);
         }
         else if (pids[i] == 0)
         {
-            // Child: setup STDIN/STDOUT from pipes/heredoc
-            if (data->commands[i].pipe_in != -1) {
+            // Child: set up STDIN/STDOUT
+            if (i > 0) {
+                dup2(prev_pipe[0], STDIN_FILENO);
+            } else if (data->commands[i].pipe_in != -1) {
                 dup2(data->commands[i].pipe_in, STDIN_FILENO);
-            } else if (i > 0) {
-                dup2(pipes[i - 1][0], STDIN_FILENO);
             }
             if (i < data->cmd_count - 1) {
-                dup2(pipes[i][1], STDOUT_FILENO);
+                dup2(curr_pipe[1], STDOUT_FILENO);
             }
 
-            // Close all pipe fds in child
-            for (int j = 0; j < data->cmd_count - 1; j++) {
-                close(pipes[j][0]);
-                close(pipes[j][1]);
-            }
+            // Close all pipe ends in child
+            if (prev_pipe[0] != -1) close(prev_pipe[0]);
+            if (prev_pipe[1] != -1) close(prev_pipe[1]);
+            if (curr_pipe[0] != -1) close(curr_pipe[0]);
+            if (curr_pipe[1] != -1) close(curr_pipe[1]);
             // Close heredoc pipes in child
             for (int j = 0; j < data->cmd_count; j++) {
                 if (data->commands[j].pipe_in != -1)
                     close(data->commands[j].pipe_in);
             }
 
-            // Now apply only file redirections that do NOT conflict with pipes/heredoc
+            // Apply file redirections as before
             for (int r = 0; r < data->commands[i].redir_count; r++) {
                 int type = data->commands[i].redirs[r].type;
                 char *file = data->commands[i].redirs[r].file;
                 int fd;
                 if (!file)
                     continue;
-                // Apply input redirection for first command if not set by heredoc/pipe
                 if (type == REDIR_IN && data->commands[i].pipe_in == -1 && i == 0) {
                     fd = open(file, O_RDONLY);
                     if (fd < 0) { perror(file); exit(ERR_GENERAL); }
                     if (dup2(fd, STDIN_FILENO) == -1) { perror("dup2"); close(fd); exit(ERR_GENERAL); }
                     close(fd);
                 }
-                // Only apply output redirection if STDOUT not already set by pipe
                 if ((type == REDIR_OUT || type == REDIR_APPEND) && i == data->cmd_count - 1) {
                     int flags = (type == REDIR_OUT) ? (O_WRONLY | O_CREAT | O_TRUNC) : (O_WRONLY | O_CREAT | O_APPEND);
                     fd = open(file, flags, 0644);
@@ -281,7 +319,7 @@ int launch_pipeline(t_data *data)
                 {
                     write(2, "minishell: ", 11);
                     write(2, data->commands[i].args[0], ft_strlen(data->commands[i].args[0]));
-                    write(2, ": Permission denied\n", 20);
+                    write(2, ": is a directory\n", 17);
                     exit(126);
                 }
                 if (path == (char *)-1)
@@ -300,13 +338,20 @@ int launch_pipeline(t_data *data)
                 exit(127);
             }
         }
+
+        // Parent: close previous pipe ends
+        if (prev_pipe[0] != -1) close(prev_pipe[0]);
+        if (prev_pipe[1] != -1) close(prev_pipe[1]);
+        // Prepare for next iteration
+        prev_pipe[0] = curr_pipe[0];
+        prev_pipe[1] = curr_pipe[1];
+        curr_pipe[0] = -1;
+        curr_pipe[1] = -1;
     }
 
-    // Parent: close all pipe ends after forking
-    for (int i = 0; i < data->cmd_count - 1; i++) {
-        close(pipes[i][0]);
-        close(pipes[i][1]);
-    }
+    // Parent: close last pipe ends if open
+    if (prev_pipe[0] != -1) close(prev_pipe[0]);
+    if (prev_pipe[1] != -1) close(prev_pipe[1]);
     // Parent: close heredoc pipes
     for (int i = 0; i < data->cmd_count; i++) {
         if (data->commands[i].pipe_in != -1)
@@ -405,7 +450,7 @@ void execute_commands(t_data *data)
 					{
 						ft_putstr_fd("minishell: ", 2);
 						ft_putstr_fd(cmd->args[0], 2);
-						ft_putstr_fd(": Permission denied\n", 2);
+						ft_putstr_fd(": is a directory\n", 2);
 						exit(126);
 					}
 					if (path == (char *)-1)
