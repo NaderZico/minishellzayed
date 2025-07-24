@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 17:55:32 by nakhalil          #+#    #+#             */
-/*   Updated: 2025/07/22 11:24:53 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/07/24 11:34:49 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,8 @@ static t_error	add_redirection(t_command *cmd, t_data *data, int *i)
 {
 	char	*file;
 
+	if (!cmd || !data || !i || !data->tokens)
+		return (ERR_SYNTAX);
 	if (*i + 1 >= data->token_count || data->tokens[*i + 1].type != WORD)
 	{
 		print_unexpected_token(data->tokens[*i].type);
@@ -59,6 +61,8 @@ static t_error	parse_command(t_command *cmd, t_data *data, int *token_i)
 {
 	t_error	err;
 
+	if (!cmd || !data || !token_i || !data->tokens)
+		return (ERR_MALLOC);
 	err = SUCCESS;
 	*cmd = (t_command){NULL, NULL, 0, 0, 0};
 	while (*token_i < data->token_count && data->tokens[*token_i].type != PIPE)
@@ -83,6 +87,8 @@ t_error	parse_tokens(t_data *data)
 	int		token_i;
 	t_error	err;
 
+	if (!data || !data->tokens)
+		return (ERR_MALLOC);
 	cmd_idx = 0;
 	token_i = 0;
 	free_commands(data);

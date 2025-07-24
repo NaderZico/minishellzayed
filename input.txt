@@ -1,6 +1,0 @@
-hello
-hellofoo
-foobar
-hi
-baroofar
-far

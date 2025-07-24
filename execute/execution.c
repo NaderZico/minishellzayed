@@ -1,16 +1,4 @@
 #include "execute.h"
-
-// typedef enum e_error
-// {
-// 	SUCCESS = 0,
-// 	ERR_GENERAL = 1,             // General error (e.g., cd: too many args)
-// 	ERR_SYNTAX = 2,              // Syntax error (like unexpected token)
-// 	ERR_CMD_PERMISSION = 126,    // Command found but permission denied
-// 	ERR_CMD_NOT_FOUND = 127,     // Command not found
-// 	ERR_SIGINT = 130,            // Ctrl-C (SIGINT)
-// 	ERR_SIGQUIT = 131,           // Ctrl-\ (SIGQUIT)
-// 	ERR_MALLOC = 255             // Internal error (custom)
-// } t_error;
 /*
  * apply_redirections
  *   - Loop over cmd->redirs[], open FDs, dup2() to STDIN/STDOUT, close originals.
@@ -18,6 +6,9 @@
 void apply_redirections(t_command *cmd)
 {
     int fd;
+
+	if (!cmd)
+		return;
 
 	if (cmd->pipe_in != -1)
 	{	
@@ -32,7 +23,7 @@ void apply_redirections(t_command *cmd)
 
     for (int i = 0; i < cmd->redir_count; i++)
     {
-        if (!cmd->redirs[i].file)
+        if (!cmd->redirs || !cmd->redirs[i].file)
         {
             write(2, "minishell: redirection file is NULL\n", 36);
             exit(ERR_GENERAL);
@@ -93,9 +84,11 @@ void apply_redirections(t_command *cmd)
 void apply_output_redirections(t_command *cmd)
 {
     int fd;
+    if (!cmd)
+        return;
     for (int i = 0; i < cmd->redir_count; i++)
     {
-        if (!cmd->redirs[i].file)
+        if (!cmd->redirs || !cmd->redirs[i].file)
         {
             write(2, "minishell: redirection file is NULL\n", 36);
             exit(ERR_GENERAL);
@@ -136,16 +129,6 @@ void apply_output_redirections(t_command *cmd)
     }
 }
 
-// /*
-//  * apply_pipes
-//  *   - Given index i and pipes[][] from the parent,
-//  *     dup2 read end to STDIN and/or write end to STDOUT.
-//  */
-// void apply_pipes(int i, int pipes[][2], int cmd_count)
-// {
-//     // TODO
-// }
-
 /*
  * close_all_pipes
  *   - Parent/child should close all pipe FDs after dup2.
@@ -176,6 +159,8 @@ void    execute_piped_external(t_command    command, char *path,t_data    *data)
 
 int launch_pipeline(t_data *data)
 {
+    if (!data || data->cmd_count <= 0)
+        return (false);
     int pipes[data->cmd_count - 1][2];
     pid_t *pids = malloc(sizeof(pid_t) * data->cmd_count);
     if (!pids)
@@ -227,6 +212,8 @@ int launch_pipeline(t_data *data)
                 int type = data->commands[i].redirs[r].type;
                 char *file = data->commands[i].redirs[r].file;
                 int fd;
+                if (!file)
+                    continue;
                 // Apply input redirection for first command if not set by heredoc/pipe
                 if (type == REDIR_IN && data->commands[i].pipe_in == -1 && i == 0) {
                     fd = open(file, O_RDONLY);
@@ -251,10 +238,13 @@ int launch_pipeline(t_data *data)
             }
             else
             {
-                char *path = find_command_path(data->commands[i].args[0], data->env);
+                char *path = NULL;
+                if (data->commands[i].args && data->commands[i].args[0])
+                    path = find_command_path(data->commands[i].args[0], data->env);
                 if (!path)
                 {
-                    write(2, data->commands[i].args[0], ft_strlen(data->commands[i].args[0]));
+                    if (data->commands[i].args && data->commands[i].args[0])
+                        write(2, data->commands[i].args[0], ft_strlen(data->commands[i].args[0]));
                     write(2, ": command not found\n", 20);
                     exit(127);
                 }
@@ -325,7 +315,7 @@ void execute_commands(t_data *data)
 	{
 		t_command *cmd = &data->commands[0];
 
-		if (isbuilt_in(*cmd) && cmd->redir_count == 0)
+		if (isbuilt_in(*cmd) && (!cmd->args || !cmd->args[0] || cmd->redir_count == 0))
 		{
 			// Built-in with no redirection: safe to run in parent
 			execute_builtin(*cmd, data);
@@ -354,10 +344,13 @@ void execute_commands(t_data *data)
 				}
 				else
 				{
-					char *path = find_command_path(cmd->args[0], data->env);
+					char *path = NULL;
+					if (cmd->args && cmd->args[0])
+						path = find_command_path(cmd->args[0], data->env);
 					if (!path)
 					{
-						ft_putstr_fd(cmd->args[0], 2);
+						if (cmd->args && cmd->args[0])
+							ft_putstr_fd(cmd->args[0], 2);
 						ft_putstr_fd(": command not found\n", 2);
 						exit(127);
 					}

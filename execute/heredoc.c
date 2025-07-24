@@ -25,6 +25,9 @@ int	found_heredoc(t_command *cmd, t_data *data, char *limiter)
 	int		status;
 	char	*line;
 
+	if (!cmd || !data || !limiter)
+		return (ERR_GENERAL);
+
 	if (pipe(fd) == -1)
 		return (ERR_GENERAL);
 
@@ -93,7 +96,7 @@ int	handle_heredocs(t_data *data)
 {
 	int	i, j;
 
-	if (!data || data->cmd_count == 0)
+	if (!data || !data->commands || data->cmd_count == 0)
 		return (SUCCESS);
 
 	i = 0;
@@ -102,7 +105,7 @@ int	handle_heredocs(t_data *data)
 		j = 0;
 		while (j < data->commands[i].redir_count)
 		{
-			if (data->commands[i].redirs[j].type == REDIR_HEREDOC)
+			if (data->commands[i].redirs && data->commands[i].redirs[j].type == REDIR_HEREDOC)
 			{
 				data->last_status = found_heredoc(
 					&data->commands[i],

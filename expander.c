@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 14:25:55 by nakhalil          #+#    #+#             */
-/*   Updated: 2025/05/21 20:02:42 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/07/24 11:34:49 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@ char	*get_env_value(char *name, char **env)
 	size_t	len;
 	int		i;
 
+	if (!name || !env)
+		return (NULL);
 	len = ft_strlen(name);
 	i = 0;
 	while (env[i])
@@ -43,6 +45,9 @@ t_error	expand_tokens(t_data *data)
 	char	*val;
 	size_t	j;
 
+	if (!data || !data->tokens)
+		return (SUCCESS);
+
 	i = 0;
 	while (i < (size_t)data->token_count)
 	{
@@ -57,7 +62,7 @@ t_error	expand_tokens(t_data *data)
 			quote = 0;
 			start = 0;
 			j = 0;
-			while (src[j])
+			while (src && src[j])
 			{
 				if (!quote && (src[j] == '"' || src[j] == '\''))
 				{

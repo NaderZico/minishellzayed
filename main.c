@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/27 14:53:55 by nakhalil          #+#    #+#             */
-/*   Updated: 2025/07/23 11:55:14 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/07/24 11:34:49 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,13 +64,15 @@ char	**copy_envp(char **copy)
 	int	i;
 	char	**new;
 
+	if (!copy)
+		return (NULL);
 	i = 0;
 	while (copy[i])
 		i++;
 	new = malloc(sizeof(char *) * (i + 1));
-	new[i] = NULL;
 	if (!new)
 		return (NULL);
+	new[i] = NULL;
 	i = 0;
 	while(copy[i])
 	{
@@ -91,6 +93,11 @@ int	main(int argc, char **argv, char **envp)
 	(void)argv;
 	ft_bzero(&data, sizeof(data));
 	data.env = copy_envp(envp);
+	if (!data.env)
+	{
+		write(2, "minishell: failed to copy environment\n", 37);
+		exit(1);
+	}
 	setup_signals();
 
 	while (1)
@@ -104,7 +111,6 @@ int	main(int argc, char **argv, char **envp)
 			continue;
 		}
 
-		// Only print prompt if running interactively and output is a terminal
 		if (isatty(STDIN_FILENO) && isatty(STDOUT_FILENO))
 			input = readline("minishell$ ");
 		else
@@ -122,7 +128,7 @@ int	main(int argc, char **argv, char **envp)
 			add_history(input);
 
 			err = tokenize_input(input, &data);
-			// debug_print_tokens(&data); // ← Debug tokens after tokenization
+// debug_print_tokens(&data); // ← Debug tokens after tokenization
 			if (err != SUCCESS)
 				handle_error(err, &data, "tokenization");
 			else if ((err = validate_syntax(&data)) != SUCCESS)
@@ -132,21 +138,18 @@ int	main(int argc, char **argv, char **envp)
 			else if ((err = parse_tokens(&data)) != SUCCESS)
 				handle_error(err, &data, "parse");
 			else {
-				// debug_print_commands(&data); // ← Debug commands after parsing
+// debug_print_commands(&data); // ← Debug commands after parsing
 				execute_commands(&data);
 			}
 
-			// Restore signals after execution
 			setup_signals();
 
-			// Exit after non-interactive command (e.g., redirected input)
 			if (!isatty(STDIN_FILENO))
 			{
 				free(input);
 				break;
 			}
-			// Exit if the command is 'exit'
-			if (data.cmd_count == 1 && data.commands[0].args &&
+			if (data.cmd_count == 1 && data.commands && data.commands[0].args &&
 				data.commands[0].args[0] &&
 				ft_strcmp(data.commands[0].args[0], "exit") == 0)
 			{

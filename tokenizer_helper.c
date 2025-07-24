@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/11 18:54:24 by nakhalil          #+#    #+#             */
-/*   Updated: 2025/07/22 11:23:57 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/07/24 11:34:49 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,8 @@ t_error	ensure_token_capacity(t_data *data)
 {
 	int	new_cap;
 
+	if (!data)
+		return (ERR_MALLOC);
 	if (data->token_count < data->token_cap)
 		return (SUCCESS);
 	if (data->token_cap > 0)
@@ -76,6 +78,8 @@ t_error	ensure_token_capacity(t_data *data)
  */
 t_error	add_token(t_data *data, char *value, t_token_type type, t_quote quote)
 {
+	if (!data)
+		return (ERR_MALLOC);
 	if (ensure_token_capacity(data) != SUCCESS)
 		return (ERR_MALLOC);
 	if (type != WORD && !value)

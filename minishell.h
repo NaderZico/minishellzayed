@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 17:52:08 by nakhalil          #+#    #+#             */
-/*   Updated: 2025/07/22 11:33:53 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/07/24 11:31:51 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@
 # include <stddef.h>
 # include <stdlib.h>
 # include <unistd.h>
-#include <fcntl.h>//there are 
-#include <sys/wait.h> // 
+#include <fcntl.h>
+#include <sys/wait.h>
 
 extern volatile sig_atomic_t	g_signal;
 

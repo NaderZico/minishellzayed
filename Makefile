@@ -6,7 +6,7 @@
 #    By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/04/23 15:41:33 by nakhalil          #+#    #+#              #
-#    Updated: 2025/07/22 11:31:36 by nakhalil         ###   ########.fr        #
+#    Updated: 2025/07/24 11:34:42 by nakhalil         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,7 +33,6 @@ SRCS = main.c \
 	expander.c \
 	syntax_check.c \
 	syntax_utils.c \
-	main_execute.c \
 	execute/heredoc.c \
 	execute/builtins.c \
 	execute/exec_external.c \

@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 13:33:37 by nakhalil          #+#    #+#             */
-/*   Updated: 2025/05/24 18:38:34 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/07/24 11:34:49 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,8 @@ char	**ft_extend_arr(char **arr, char *new_str)
 	int		i;
 	char	**new;
 
+	if (!new_str)
+		return (arr);
 	count = 0;
 	while (arr && arr[count])
 		count++;
@@ -80,6 +82,8 @@ char	**ft_extend_arr(char **arr, char *new_str)
 
 void	append_char(char **buf, size_t *cap, size_t *len, char c)
 {
+	if (!buf || !cap || !len)
+		return;
 	if (*len + 1 >= *cap)
 	{
 		*buf = ft_realloc(*buf, *cap, *cap * 2);
@@ -91,13 +95,18 @@ void	append_char(char **buf, size_t *cap, size_t *len, char c)
 
 void	handle_error(t_error err, t_data *data, char *context)
 {
-		const char *tok_val = data->tokens[data->error_pos].value;
+	const char *tok_val = NULL;
+	if (data && data->tokens && data->error_pos >= 0 && data->error_pos < data->token_count)
+		tok_val = data->tokens[data->error_pos].value;
 
 	if (err == ERR_SYNTAX)
 	{
 		ft_putstr_fd("minishell: syntax error near unexpected token `",
 			STDERR_FILENO);
-		ft_putstr_fd((char *)tok_val, STDERR_FILENO);
+		if (tok_val)
+			ft_putstr_fd((char *)tok_val, STDERR_FILENO);
+		else
+			ft_putstr_fd("?", STDERR_FILENO);
 		ft_putstr_fd("'\n", STDERR_FILENO);
 	}
 	else
@@ -115,5 +124,6 @@ void	handle_error(t_error err, t_data *data, char *context)
 		else
 			ft_putendl_fd("unknown error", STDERR_FILENO);
 	}
-	data->last_status = (err == ERR_SIGINT) ? 130 : err;
+	if (data)
+		data->last_status = (err == ERR_SIGINT) ? 130 : err;
 }

@@ -8,7 +8,7 @@
 
  int isbuilt_in(t_command data)
  {
-	 char *cmp = data.args[0];
+	 char *cmp = (data.args && data.args[0]) ? data.args[0] : NULL;
 	 char *built[8] = {"echo","cd","pwd","export","unset","env","exit", NULL};
 	 int i = 0;
  
@@ -116,6 +116,13 @@ void echo(t_command data, int *last_status)
     int i = 1;
     int newline = 1;
 
+    if (!data.args || !data.args[0]) {
+        write(1, "\n", 1);
+        if (last_status)
+            *last_status = 0;
+        return;
+    }
+
     // handle -n flags
     while (data.args[i] && is_n_flag(data.args[i]))
     {
@@ -135,12 +142,17 @@ void echo(t_command data, int *last_status)
     if (newline)
         write(1, "\n", 1);
 
-    *last_status = 0;
+    if (last_status)
+        *last_status = 0;
 }
 
 void pwd(t_data *data)
 {
-    char *path = getcwd(NULL, 0);
+    char *path;
+
+    if (!data)
+        return;
+    path = getcwd(NULL, 0);
     if (!path)
     {
         perror("getcwd");
@@ -183,13 +195,18 @@ void    free_envp(char  **env)
 // Remove entry by key (key must be exact before '=')
 void	remove_env_entry(t_data *data, const char *key)
 {
-	int		len = env_len(data->env);
-	char	**new_env = malloc(sizeof(char *) * (len + 1));
-	int		i = 0, j = 0;
-	int		key_len = ft_strlen(key);
+	int		len, i, j, key_len;
+	char	**new_env;
 
+	if (!data || !data->env || !key)
+		return;
+	len = env_len(data->env);
+	new_env = malloc(sizeof(char *) * (len + 1));
 	if (!new_env)
 		return;
+	i = 0;
+	j = 0;
+	key_len = ft_strlen(key);
 
 	while (data->env[i])
 	{
@@ -267,18 +284,23 @@ void	export(t_command command, t_data *data)
 
 void cd(t_command cmd, t_data *data)
 {
-	char *oldpwd = getcwd(NULL, 0);
-	char *path = cmd.args[1];
+	char *oldpwd, *path, *tmp;
+
+	if (!data)
+		return;
+	oldpwd = getcwd(NULL, 0);
+	path = (cmd.args && cmd.args[1]) ? cmd.args[1] : NULL;
 
 	if (!path)
 		path = get_env_value("HOME", data->env);
 	else if (ft_strcmp(path, "-") == 0)
 	{
-		path = get_env_value("OLDPWD", data->env);
-		if (path)
+		tmp = get_env_value("OLDPWD", data->env);
+		if (tmp)
 		{
-			write(1, path, ft_strlen(path));
+			write(1, tmp, ft_strlen(tmp));
 			write(1, "\n", 1);
+			path = tmp;
 		}
 	}
 
@@ -300,11 +322,11 @@ void cd(t_command cmd, t_data *data)
 		set_env_value("OLDPWD", oldpwd, data);
 	free(oldpwd);
 
-	char *newpwd = getcwd(NULL, 0);
-	if (newpwd)
+	tmp = getcwd(NULL, 0);
+	if (tmp)
 	{
-		set_env_value("PWD", newpwd, data);
-		free(newpwd);
+		set_env_value("PWD", tmp, data);
+		free(tmp);
 	}
 
 	data->last_status = 0;
@@ -319,7 +341,9 @@ void    exit_builtin(t_command command, t_data  *data)
 
     digit = 10;
     i = 0;
-    if (command.args[1])
+    if (!data)
+        exit(0);
+    if (command.args && command.args[1])
     {
         while (command.args[1][i])
         {
@@ -360,6 +384,10 @@ void execute_builtin(t_command command, t_data *data)
 {
     char *built[8] = {"echo","cd","pwd","export","unset","env","exit", NULL};
     int i = 0;
+    if (!command.args || !command.args[0]) {
+        data->last_status = 127;
+        return;
+    }
     while (built[i] && ft_strcmp(built[i], command.args[0]) != 0)
         i++;
     if (!built[i]) {
