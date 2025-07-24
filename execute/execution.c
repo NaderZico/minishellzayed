@@ -213,43 +213,52 @@ static int precheck_all_redirections(t_data *data, int *redir_error)
     for (i = 0; i < data->cmd_count; i++) {
         cmd = &data->commands[i];
         redir_error[i] = 0;
+        int stop_redir = 0;
         for (r = 0; r < cmd->redir_count; r++) {
             char *file = cmd->redirs[r].file;
             int type = cmd->redirs[r].type;
-            if (!file)
+            if (!file || stop_redir)
                 continue;
-            if (type == REDIR_OUT) {
-                fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-                if (fd < 0) {
-                    write(2, "minishell: ", 6);
-                    write(2, file, ft_strlen(file));
-                    write(2, ": ", 2);
-                    perror("");
-                    error_found = 1;
-                } else {
-                    close(fd);
-                }
-            } else if (type == REDIR_APPEND) {
-                fd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0644);
-                if (fd < 0) {
-                    write(2, "minishell: ", 6);
-                    write(2, file, ft_strlen(file));
-                    write(2, ": ", 2);
-                    perror("");
-                    error_found = 1;
-                } else {
-                    close(fd);
-                }
-            } else if (type == REDIR_IN) {
+            if (type == REDIR_IN) {
                 fd = open(file, O_RDONLY);
                 if (fd < 0) {
-                    write(2, "minshell: ", 6);
+                    write(2, "minishell: ", 11);
                     write(2, file, ft_strlen(file));
-                    write(2, ": No such file or directory\n", 28);
+                    if (errno == EACCES)
+                        write(2, ": Permission denied\n", 20);
+                    else
+                        write(2, ": No such file or directory\n", 28);
                     redir_error[i] = 1;
                     error_found = 1;
+                    stop_redir = 1;
                 } else {
                     close(fd);
+                }
+            } else if (type == REDIR_OUT) {
+                if (!stop_redir) {
+                    fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                    if (fd < 0) {
+                        write(2, "minishell: ", 11);
+                        write(2, file, ft_strlen(file));
+                        write(2, ": ", 2);
+                        perror("");
+                        error_found = 1;
+                    } else {
+                        close(fd);
+                    }
+                }
+            } else if (type == REDIR_APPEND) {
+                if (!stop_redir) {
+                    fd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0644);
+                    if (fd < 0) {
+                        write(2, "minishell: ", 11);
+                        write(2, file, ft_strlen(file));
+                        write(2, ": ", 2);
+                        perror("");
+                        error_found = 1;
+                    } else {
+                        close(fd);
+                    }
                 }
             }
             // REDIR_HEREDOC: handled elsewhere
