@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 17:52:08 by nakhalil          #+#    #+#             */
-/*   Updated: 2025/07/24 13:03:20 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/07/24 15:23:38 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ typedef enum e_error
 {
 	SUCCESS = 0,
 	ERR_GENERAL = 1,             // General error (e.g., cd: too many args)
-	ERR_SYNTAX = 2,              // Syntax error (like unexpected token)
+	ERR_SYNTAX = 258,              // Syntax error (like unexpected token)
 	ERR_CMD_PERMISSION = 126,    // Command found but permission denied
 	ERR_CMD_NOT_FOUND = 127,     // Command not found
 	ERR_SIGINT = 130,            // Ctrl-C (SIGINT)

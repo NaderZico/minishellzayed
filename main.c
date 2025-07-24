@@ -106,7 +106,6 @@ int	main(int argc, char **argv, char **envp)
 
 		if (g_signal)
 		{
-			data.last_status = g_signal;
 			g_signal = 0;
 			continue;
 		}
@@ -134,9 +133,10 @@ int	main(int argc, char **argv, char **envp)
 				char **cmds = split_unquoted(lines[l], ';');
 				for (int c = 0; cmds && cmds[c]; c++)
 				{
-					if (ft_strtrim(cmds[c], " \t\r")) // skip empty
+					char *trimmed = ft_strtrim(cmds[c], " \t\r");
+					if (trimmed && *trimmed) // Only process non-empty commands
 					{
-						err = tokenize_input(cmds[c], &data);
+						err = tokenize_input(trimmed, &data);
 						if (err != SUCCESS)
 							handle_error(err, &data, "tokenization");
 						else if ((err = validate_syntax(&data)) != SUCCESS)
@@ -148,6 +148,7 @@ int	main(int argc, char **argv, char **envp)
 						else
 							execute_commands(&data);
 					}
+					free(trimmed);
 					free(cmds[c]);
 				}
 				free(cmds);
