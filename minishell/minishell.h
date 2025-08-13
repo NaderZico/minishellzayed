@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:52:09 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/13 17:21:07 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/13 17:53:19 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,7 +225,6 @@ void			last_exit_e(t_vars *v, t_cmds *p, t_pipe *c);
 void			rl_replace_line(const char *text, int clear_undo);
 void			rl_redisplay(void);
 void			update_quote_state(char c, int *quote_char);
-void			increment(char *str, t_vars *vars);
 void			handle_spaces(char **str);
 
 #endif

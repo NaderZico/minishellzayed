@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:53 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/13 17:20:55 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/13 17:53:10 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,23 @@ static char	*add_space_tokens(char *str)
 	return (new_str);
 }
 
+static void	collapse_and_increment(char *str, t_vars *vars)
+{
+	if (str[vars->i] == ' ')
+	{
+		if (!vars->space_found)
+		{
+			str[vars->counter++] = ' ';
+			vars->space_found = 1;
+		}
+	}
+	else
+	{
+		str[vars->counter++] = str[vars->i];
+		vars->space_found = 0;
+	}
+}
+
 static void	remove_extra_spaces(char *str)
 {
 	t_vars	vars;
@@ -82,7 +99,7 @@ static void	remove_extra_spaces(char *str)
 			str[vars.counter++] = str[vars.i];
 		}
 		else if (vars.quote_char == 0)
-			increment(str, &vars);
+			collapse_and_increment(str, &vars);
 		else
 			str[vars.counter++] = str[vars.i];
 		vars.i++;

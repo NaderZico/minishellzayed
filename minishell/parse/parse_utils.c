@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:15 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/13 17:10:46 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/13 17:52:40 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,22 +35,7 @@ int	count_redirs(char *str)
 	return (num);
 }
 
-void	increment(char *str, t_vars *vars)
-{
-	if (str[vars->i] == ' ')
-	{
-		if (!vars->space_found)
-		{
-			str[vars->counter++] = ' ';
-			vars->space_found = 1;
-		}
-	}
-	else
-	{
-		str[vars->counter++] = str[vars->i];
-		vars->space_found = 0;
-	}
-}
+
 
 void	update_quote_state(char c, int *quote_char)
 {
