@@ -6,7 +6,7 @@
 #    By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/07/30 16:52:16 by zsid-ele          #+#    #+#              #
-#    Updated: 2025/08/13 17:21:22 by nakhalil         ###   ########.fr        #
+#    Updated: 2025/08/13 17:27:41 by nakhalil         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,7 @@ SRCS =	main.c							\
 		parse/parse_utils.c			\
 		parse/handle_spaces.c				\
 		parse/get_cmd.c				\
-		parse/dollar_handle.c				\
+		parse/handle_dollar.c				\
 		parse/get_env.c					\
 		parse/signal.c                   \
 		free_utils.c					\
