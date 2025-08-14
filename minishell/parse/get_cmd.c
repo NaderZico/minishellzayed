@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:39 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/14 16:32:13 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/14 17:29:29 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,47 +51,47 @@ static void	extract_file_name(char *str, char **file_name, int i, t_vars *v)
 
 static void	set_redirs(t_pipe *p, t_cmds *cmds, t_vars *v)
 {
-	v->start = v->exit_status - 1;
-	if (p->cmds[v->counter][v->exit_status + 1] == '>'
-		|| p->cmds[v->counter][v->exit_status + 1] == '<')
+	v->start = v->redir_pos - 1;
+	if (p->cmds[v->cmd_i][v->redir_pos + 1] == '>'
+		|| p->cmds[v->cmd_i][v->redir_pos + 1] == '<')
 	{
-		if (p->cmds[v->counter][v->exit_status + 1] == '>')
-			cmds[v->counter].outs[v->exit_code].flag = APPEND;
-		else if (p->cmds[v->counter][v->exit_status + 1] == '<')
-			cmds[v->counter].outs[v->exit_code].flag = HERE_DOC;
-		v->exit_status += 2;
+		if (p->cmds[v->cmd_i][v->redir_pos + 1] == '>')
+			cmds[v->cmd_i].outs[v->redir_i].flag = APPEND;
+		else if (p->cmds[v->cmd_i][v->redir_pos + 1] == '<')
+			cmds[v->cmd_i].outs[v->redir_i].flag = HERE_DOC;
+		v->redir_pos += 2;
 	}
-	else if (p->cmds[v->counter][v->exit_status] == '>')
+	else if (p->cmds[v->cmd_i][v->redir_pos] == '>')
 	{
-		cmds[v->counter].outs[v->exit_code].flag = OUT_FILE;
-		v->exit_status++;
+		cmds[v->cmd_i].outs[v->redir_i].flag = OUT_FILE;
+		v->redir_pos++;
 	}
-	else if (p->cmds[v->counter][v->exit_status] == '<')
+	else if (p->cmds[v->cmd_i][v->redir_pos] == '<')
 	{
-		cmds[v->counter].outs[v->exit_code].flag = IN_FILE;
-		v->exit_status++;
+		cmds[v->cmd_i].outs[v->redir_i].flag = IN_FILE;
+		v->redir_pos++;
 	}
 }
 
 static void	process_redirs(t_pipe *p, t_cmds *cmds, t_vars *v)
 {
-	v->exit_code = 0;
-	v->exit_status = -1;
-	while (p->cmds[v->counter][++v->exit_status])
+	v->redir_i = 0;
+	v->redir_pos = -1;
+	while (p->cmds[v->cmd_i][++v->redir_pos])
 	{
-		update_quote_state(p->cmds[v->counter][v->exit_status], &v->quote_char);
-		if ((p->cmds[v->counter][v->exit_status] == '>'
-			|| p->cmds[v->counter][v->exit_status] == '<')
+		update_quote_state(p->cmds[v->cmd_i][v->redir_pos], &v->quote_char);
+		if ((p->cmds[v->cmd_i][v->redir_pos] == '>'
+			|| p->cmds[v->cmd_i][v->redir_pos] == '<')
 			&& !v->quote_char)
 		{
 			set_redirs(p, cmds, v);
-			extract_file_name(p->cmds[v->counter],
-				&cmds[v->counter].outs[v->exit_code].file_name, v->exit_status
+			extract_file_name(p->cmds[v->cmd_i],
+				&cmds[v->cmd_i].outs[v->redir_i].file_name, v->redir_pos
 				+ 1, v);
-			clean_quotes(cmds[v->counter].outs[v->exit_code].file_name);
-			remove_substr(p->cmds[v->counter], v->start, v->i);
-			v->exit_status = v->start - 1;
-			v->exit_code++;
+			clean_quotes(cmds[v->cmd_i].outs[v->redir_i].file_name);
+			remove_substr(p->cmds[v->cmd_i], v->start, v->i);
+			v->redir_pos = v->start - 1;
+			v->redir_i++;
 		}
 	}
 }
@@ -103,24 +103,24 @@ void	save_cmd_files(t_pipe *p, t_cmds **tmp)
 
 	v.start = 0;
 	v.quote_char = 0;
-	v.helper_index = 0;
-	v.counter = -1;
-	v.exit_status = 0;
+	v.arg_i = 0;
+	v.cmd_i = -1;
+	v.redir_pos = 0;
 	*tmp = malloc(sizeof(t_cmds) * p->total_cmds);
 	cmds = *tmp;
 	cmds->cmd_len = p->total_cmds;
 	cmds->red_len = 0;
-	while (++v.counter < p->total_cmds)
+	while (++v.cmd_i < p->total_cmds)
 	{
-		cmds[v.counter].red_len = count_redirs(p->cmds[v.counter]);
-		if (cmds[v.counter].red_len)
-			cmds[v.counter].outs = malloc(sizeof(t_redirect)
-					* cmds[v.counter].red_len);
+		cmds[v.cmd_i].red_len = count_redirs(p->cmds[v.cmd_i]);
+		if (cmds[v.cmd_i].red_len)
+			cmds[v.cmd_i].outs = malloc(sizeof(t_redirect)
+					* cmds[v.cmd_i].red_len);
 		process_redirs(p, cmds, &v);
-		cmds[v.counter].cmd = ft_split(p->cmds[v.counter], ' ');
-		v.helper_index = 0;
-		while (cmds[v.counter].cmd[v.helper_index])
-			clean_quotes(cmds[v.counter].cmd[v.helper_index++]);
-		v.helper_index = 0;
+		cmds[v.cmd_i].cmd = ft_split(p->cmds[v.cmd_i], ' ');
+		v.arg_i = 0;
+		while (cmds[v.cmd_i].cmd[v.arg_i])
+			clean_quotes(cmds[v.cmd_i].cmd[v.arg_i++]);
+		v.arg_i = 0;
 	}
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   extra_utils.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsid-ele <zsid-ele@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 17:00:46 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/07/30 17:00:46 by zsid-ele         ###   ########.fr       */
+/*   Updated: 2025/08/14 17:28:02 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ int	found_first(char **m_env, t_pipe *pipe_data)
 		reset_values(&v, pipe_data);
 		if (m_env[v.i + 1] != NULL && m_env[v.i] != NULL)
 		{
-			while ((int)m_env[v.i][v.counter] > (int)m_env[v.fd++][v.counter])
+			while ((int)m_env[v.i][v.cmd_i] > (int)m_env[v.fd++][v.cmd_i])
 			{
 				v.cmd_count++;
 				if (m_env[v.fd] == NULL)

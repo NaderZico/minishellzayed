@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:53 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/14 15:37:38 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/14 17:28:02 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,13 +71,13 @@ static void	collapse_and_increment(char *str, t_vars *vars)
 	{
 		if (!vars->space_found)
 		{
-			str[vars->counter++] = ' ';
+			str[vars->cmd_i++] = ' ';
 			vars->space_found = 1;
 		}
 	}
 	else
 	{
-		str[vars->counter++] = str[vars->i];
+		str[vars->cmd_i++] = str[vars->i];
 		vars->space_found = 0;
 	}
 }
@@ -87,7 +87,7 @@ static void	remove_extra_spaces(char *str)
 	t_vars	vars;
 
 	vars.i = 0;
-	vars.counter = 0;
+	vars.cmd_i = 0;
 	vars.space_found = 0;
 	vars.quote_char = 0;
 	while (str[vars.i] != '\0')
@@ -96,15 +96,15 @@ static void	remove_extra_spaces(char *str)
 		if (str[vars.i] == '"' || str[vars.i] == '\'')
 		{
 			vars.space_found = 0;
-			str[vars.counter++] = str[vars.i];
+			str[vars.cmd_i++] = str[vars.i];
 		}
 		else if (vars.quote_char == 0)
 			collapse_and_increment(str, &vars);
 		else
-			str[vars.counter++] = str[vars.i];
+			str[vars.cmd_i++] = str[vars.i];
 		vars.i++;
 	}
-	str[vars.counter] = '\0';
+	str[vars.cmd_i] = '\0';
 }
 
 void	handle_spaces(char **str)

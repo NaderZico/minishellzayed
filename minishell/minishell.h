@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:52:09 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/13 17:53:19 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/14 17:29:29 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,19 +37,19 @@ typedef struct s_env
 typedef struct s_vars
 {
 	int			i;
-	int			counter;
+	int			cmd_i;
 	int			cmd_count;
 	int			redirect_index;
 	int			fd;
-	int			helper_index;
+	int			arg_i;
 	int			d;
 	int			empty;
 	int			space_found;
 	int			quote_char;
-	int			exit_status;
+	int			redir_pos;
 	int			start;
 	int			len;
-	int			exit_code;
+	int			redir_i;
 	int			in_d_quotes;
 	int			in_quotes;
 	int			pid;

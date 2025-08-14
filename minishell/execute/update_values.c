@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   update_values.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsid-ele <zsid-ele@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:59:49 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/05 08:57:39 by zsid-ele         ###   ########.fr       */
+/*   Updated: 2025/08/14 17:29:29 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,19 +70,19 @@ void	init_export(t_vars *v, t_pipe *var_name)
 	v->i = 0;
 	v->fd = 0;
 	v->cmd_count = 0;
-	v->counter = 0;
+	v->cmd_i = 0;
 	v->redirect_index = env_count(var_name);
 }
 
 void	wait_pipes(t_vars *v, t_pipe *pipe, t_cmds *var_name)
 {
-	v->helper_index = 0;
-	while (v->helper_index < var_name->cmd_len)
+	v->arg_i = 0;
+	while (v->arg_i < var_name->cmd_len)
 	{
 		wait(&pipe->status);
-		if (v->helper_index == var_name->cmd_len - 1)
+		if (v->arg_i == var_name->cmd_len - 1)
 			exit_code_pipes(pipe, v);
-		v->helper_index++;
+		v->arg_i++;
 	}
 	pipe->current_result = 0;
 	pipe->pipe_flag_read = 0;

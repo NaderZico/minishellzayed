@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   multiple_pipes_f.c                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsid-ele <zsid-ele@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 17:00:21 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/05 08:12:09 by zsid-ele         ###   ########.fr       */
+/*   Updated: 2025/08/14 17:29:29 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,9 @@ void	before_cmd(t_pipe *pipe, t_cmds *cmd, t_vars *vars)
 {
 	if (pipe->pid == 0)
 	{
-		if (vars->counter == 0)
+		if (vars->cmd_i == 0)
 			execute_first_command(pipe, cmd, vars);
-		else if (vars->counter == cmd->cmd_len - 1)
+		else if (vars->cmd_i == cmd->cmd_len - 1)
 			execute_last_command(pipe, cmd, vars);
 		else
 		{
@@ -35,8 +35,8 @@ void	initialize_variables(t_vars *vars, t_pipe *pipe)
 {
 	vars->temp_exit_file = ".minishell_exit_status";
 	vars->i = 0;
-	vars->counter = 0;
-	vars->helper_index = 0;
+	vars->cmd_i = 0;
+	vars->arg_i = 0;
 	vars->i = 0;
 	vars->d = 0;
 	pipe->cmd_exec = NULL;
@@ -50,9 +50,9 @@ void	initialize_variables(t_vars *vars, t_pipe *pipe)
 
 void	execute_middle_command_even(t_pipe *pipe, t_cmds *cmd, t_vars *vars)
 {
-	if (cmd[vars->counter].red_len > 0)
-		check_exec_redirect(cmd, pipe, 1, vars->counter);
-	if (input_check(cmd, pipe, vars->counter) == 0)
+	if (cmd[vars->cmd_i].red_len > 0)
+		check_exec_redirect(cmd, pipe, 1, vars->cmd_i);
+	if (input_check(cmd, pipe, vars->cmd_i) == 0)
 	{
 		if (dup2(pipe->pipe_fds[1][0], STDIN_FILENO) == -1)
 		{
@@ -60,7 +60,7 @@ void	execute_middle_command_even(t_pipe *pipe, t_cmds *cmd, t_vars *vars)
 			exit(0);
 		}
 	}
-	if (output_check(cmd, pipe, vars->counter) == 0)
+	if (output_check(cmd, pipe, vars->cmd_i) == 0)
 	{
 		if (dup2(pipe->pipe_fds[0][1], STDOUT_FILENO) == -1)
 		{

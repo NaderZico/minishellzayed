@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:23 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/13 13:40:20 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/14 17:28:02 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ int	is_valid_redir(char *str)
 	t_vars	vars;
 
 	vars.i = 0;
-	vars.counter = 0;
+	vars.cmd_i = 0;
 	vars.in_d_quotes = 0;
 	vars.in_quotes = 0;
 	if (!check_str_redirs(&str, &vars))

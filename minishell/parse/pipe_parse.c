@@ -6,13 +6,13 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:06 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/13 17:20:18 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/14 16:55:25 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-static int	check_str_quotes(char *str)
+static int	are_quotes_closed(char *str)
 {
 	int	i;
 	int	quote_char;
@@ -85,7 +85,7 @@ int	validate_pipes(t_pipe *pipe, char *line, t_cmds *cmds)
 		return (0);
 	if (!is_pipe_in_quotes(line, i, j))
 		return (0);
-	if (!check_str_quotes(line))
+	if (!are_quotes_closed(line))
 		return (0);
 	pipe->cmds = ft_split(line, '|');
 	i = 0;
