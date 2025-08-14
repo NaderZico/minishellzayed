@@ -6,7 +6,7 @@
 #    By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/07/30 16:52:16 by zsid-ele          #+#    #+#              #
-#    Updated: 2025/08/13 17:27:41 by nakhalil         ###   ########.fr        #
+#    Updated: 2025/08/14 17:47:35 by nakhalil         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ NAME = minishell
 
 SRCS =	main.c							\
 		parse/parse_redirect.c			\
-		parse/pipe_parse.c				\
+		parse/parse_pipe.c				\
 		parse/parse_utils.c			\
 		parse/handle_spaces.c				\
 		parse/get_cmd.c				\
