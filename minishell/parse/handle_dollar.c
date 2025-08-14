@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   dollar_handle.c                                    :+:      :+:    :+:   */
+/*   handle_dollar.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:47 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/13 15:53:40 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/14 16:32:42 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,7 @@ static int	expand_env_var(char **str, char *expanded, t_vars *var)
 	}
 	if (!ft_isalpha((*str)[var->i]) && (*str)[var->i] != '_')
 		return (1);
+	var->start = var->i;
 	var->len = 0;
 	while (ft_isalnum((*str)[var->i]) || (*str)[var->i] == '_')
 	{
@@ -110,7 +111,7 @@ void	expand_dollar_vars(char **str, t_pipe *pipe)
 		{
 			if (expand_env_var(str, expanded, &var))
 				continue ;
-			tmp = ft_substr(*str, var.i - var.len, var.len);
+			tmp = ft_substr(*str, var.start, var.len);
 			if (process_expansion(str, &tmp, &var, pipe))
 				continue ;
 		}

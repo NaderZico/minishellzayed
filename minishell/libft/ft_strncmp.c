@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strncmp.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zsid-ele <zsid-ele@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:55:34 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/05 07:57:38 by zsid-ele         ###   ########.fr       */
+/*   Updated: 2025/08/14 16:29:49 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,29 +24,18 @@ int	ft_strcmp(char *s1, char *s2)
 
 int	ft_strncmp(const char *s1, const char *s2, size_t n)
 {
-	size_t			i;
-	int				c;
-	int				k;
-	unsigned char	*ns1;
-	unsigned char	*ns2;
+	size_t	i;
 
-	if (!s1 || !s2 || s1[0] == '\0' || s2[0] == '\0')
-		return (-1);
-	if (ft_strlen(s1) != ft_strlen(s2))
-		return (1);
-	ns1 = (unsigned char *)s1;
-	ns2 = (unsigned char *)s2;
-	i = -1;
-	c = ft_strlen(s1) - 1;
-	k = ft_strlen(s2) - 1;
-	while (++i < n && c >= 0 && k >= 0)
+	if (n == 0)
+		return (0);
+	i = 0;
+	while (i < n && s1[i] && s2[i])
 	{
-		if (ns1[c] != ns2[k])
-			return (ns1[c] - ns2[k]);
-		c--;
-		k--;
+		if ((unsigned char)s1[i] != (unsigned char)s2[i])
+			return ((unsigned char)s1[i] - (unsigned char)s2[i]);
+		i++;
 	}
-	if (i != n)
-		return (ns1[c] - ns2[c]);
+	if (i < n)
+		return ((unsigned char)s1[i] - (unsigned char)s2[i]);
 	return (0);
 }

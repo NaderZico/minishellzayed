@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:15 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/13 17:52:40 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/14 14:33:29 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,6 @@ int	count_redirs(char *str)
 	}
 	return (num);
 }
-
-
 
 void	update_quote_state(char c, int *quote_char)
 {
