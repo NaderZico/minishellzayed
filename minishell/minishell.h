@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:52:09 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/14 17:29:29 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/14 17:42:33 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,10 +46,8 @@ typedef struct s_vars
 	int			empty;
 	int			space_found;
 	int			quote_char;
-	int			redir_pos;
 	int			start;
 	int			len;
-	int			redir_i;
 	int			in_d_quotes;
 	int			in_quotes;
 	int			pid;

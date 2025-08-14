@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:39 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/14 17:29:29 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/14 17:45:05 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,49 +49,56 @@ static void	extract_file_name(char *str, char **file_name, int i, t_vars *v)
 	*file_name = ft_substr(str, start, i - start);
 }
 
-static void	set_redirs(t_pipe *p, t_cmds *cmds, t_vars *v)
+static int	set_redirs(t_pipe *p, t_vars *v, int *redir_pos)
 {
-	v->start = v->redir_pos - 1;
-	if (p->cmds[v->cmd_i][v->redir_pos + 1] == '>'
-		|| p->cmds[v->cmd_i][v->redir_pos + 1] == '<')
+	int	flag;
+
+	flag = -1;
+	v->start = *redir_pos - 1;
+	if (p->cmds[v->cmd_i][*redir_pos + 1] == '>' || p->cmds[v->cmd_i][*redir_pos
+		+ 1] == '<')
 	{
-		if (p->cmds[v->cmd_i][v->redir_pos + 1] == '>')
-			cmds[v->cmd_i].outs[v->redir_i].flag = APPEND;
-		else if (p->cmds[v->cmd_i][v->redir_pos + 1] == '<')
-			cmds[v->cmd_i].outs[v->redir_i].flag = HERE_DOC;
-		v->redir_pos += 2;
+		if (p->cmds[v->cmd_i][*redir_pos + 1] == '>')
+			flag = APPEND;
+		else if (p->cmds[v->cmd_i][*redir_pos + 1] == '<')
+			flag = HERE_DOC;
+		*redir_pos += 2;
 	}
-	else if (p->cmds[v->cmd_i][v->redir_pos] == '>')
+	else if (p->cmds[v->cmd_i][*redir_pos] == '>')
 	{
-		cmds[v->cmd_i].outs[v->redir_i].flag = OUT_FILE;
-		v->redir_pos++;
+		flag = OUT_FILE;
+		(*redir_pos)++;
 	}
-	else if (p->cmds[v->cmd_i][v->redir_pos] == '<')
+	else if (p->cmds[v->cmd_i][*redir_pos] == '<')
 	{
-		cmds[v->cmd_i].outs[v->redir_i].flag = IN_FILE;
-		v->redir_pos++;
+		flag = IN_FILE;
+		(*redir_pos)++;
 	}
+	return (flag);
 }
 
 static void	process_redirs(t_pipe *p, t_cmds *cmds, t_vars *v)
 {
-	v->redir_i = 0;
-	v->redir_pos = -1;
-	while (p->cmds[v->cmd_i][++v->redir_pos])
+	int	redir_i;
+	int	redir_pos;
+	int	flag;
+
+	redir_i = 0;
+	redir_pos = -1;
+	while (p->cmds[v->cmd_i][++redir_pos])
 	{
-		update_quote_state(p->cmds[v->cmd_i][v->redir_pos], &v->quote_char);
-		if ((p->cmds[v->cmd_i][v->redir_pos] == '>'
-			|| p->cmds[v->cmd_i][v->redir_pos] == '<')
-			&& !v->quote_char)
+		update_quote_state(p->cmds[v->cmd_i][redir_pos], &v->quote_char);
+		if ((p->cmds[v->cmd_i][redir_pos] == '>'
+			|| p->cmds[v->cmd_i][redir_pos] == '<') && !v->quote_char)
 		{
-			set_redirs(p, cmds, v);
+			flag = set_redirs(p, v, &redir_pos);
+			cmds[v->cmd_i].outs[redir_i].flag = flag;
 			extract_file_name(p->cmds[v->cmd_i],
-				&cmds[v->cmd_i].outs[v->redir_i].file_name, v->redir_pos
-				+ 1, v);
-			clean_quotes(cmds[v->cmd_i].outs[v->redir_i].file_name);
+				&cmds[v->cmd_i].outs[redir_i].file_name, redir_pos + 1, v);
+			clean_quotes(cmds[v->cmd_i].outs[redir_i].file_name);
 			remove_substr(p->cmds[v->cmd_i], v->start, v->i);
-			v->redir_pos = v->start - 1;
-			v->redir_i++;
+			redir_pos = v->start - 1;
+			redir_i++;
 		}
 	}
 }
@@ -105,7 +112,6 @@ void	save_cmd_files(t_pipe *p, t_cmds **tmp)
 	v.quote_char = 0;
 	v.arg_i = 0;
 	v.cmd_i = -1;
-	v.redir_pos = 0;
 	*tmp = malloc(sizeof(t_cmds) * p->total_cmds);
 	cmds = *tmp;
 	cmds->cmd_len = p->total_cmds;
