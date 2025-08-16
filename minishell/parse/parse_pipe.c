@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipe_parse.c                                       :+:      :+:    :+:   */
+/*   parse_pipe.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:06 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/14 16:55:25 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/16 13:39:55 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ static int	are_quotes_closed(char *str)
 	return (1);
 }
 
-static int	check_pipe_pos(char *line)
+static int	check_pipe_ends(char *line)
 {
 	int	len;
 	int	i;
@@ -81,7 +81,7 @@ int	validate_pipes(t_pipe *pipe, char *line, t_cmds *cmds)
 	quotes = 0;
 	i = 0;
 	j = 0;
-	if (!check_pipe_pos(line))
+	if (!check_pipe_ends(line))
 		return (0);
 	if (!is_pipe_in_quotes(line, i, j))
 		return (0);

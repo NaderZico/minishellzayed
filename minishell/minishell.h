@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:52:09 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/14 17:42:33 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/16 13:16:20 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ typedef struct t_pipe
 char			*get_env_value(const char *name, t_pipe *pipe);
 int				validate_pipes(t_pipe *pipe, char *line, t_cmds *cmds);
 void			expand_dollar_vars(char **str, t_pipe *pipe);
-int				is_valid_redir(char *str);
+int				validate_redirs(char *str);
 int				count_redirs(char *str);
 void			free_strings(char **av);
 void			free_all(t_pipe *pipe, t_cmds *cmd);

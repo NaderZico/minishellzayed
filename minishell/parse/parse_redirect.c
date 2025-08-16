@@ -6,13 +6,13 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:23 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/14 17:28:02 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/16 13:39:31 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-static int	validate_redir(char **str, t_vars *v)
+static int	is_valid_redir(char **str, t_vars *v)
 {
 	if ((*str)[v->i] == '>' || (*str)[v->i] == '<')
 	{
@@ -34,7 +34,7 @@ static int	validate_redir(char **str, t_vars *v)
 	return (1);
 }
 
-static int	check_back_redir(char *s)
+static int	check_redir_end(char *s)
 {
 	int	i;
 
@@ -48,21 +48,7 @@ static int	check_back_redir(char *s)
 	return (1);
 }
 
-static int	check_str_redirs(char **str, t_vars *vars)
-{
-	if (!check_back_redir(*str))
-		return (0);
-	vars->i = 0;
-	while ((*str)[vars->i])
-	{
-		update_quote_state((*str)[vars->i], &vars->in_quotes);
-		if (!validate_redir(str, vars))
-			return (0);
-	}
-	return (1);
-}
-
-int	is_valid_redir(char *str)
+int	validate_redirs(char *str)
 {
 	t_vars	vars;
 
@@ -70,7 +56,13 @@ int	is_valid_redir(char *str)
 	vars.cmd_i = 0;
 	vars.in_d_quotes = 0;
 	vars.in_quotes = 0;
-	if (!check_str_redirs(&str, &vars))
+	if (!check_redir_end(str))
 		return (0);
+	while (str[vars.i])
+	{
+		update_quote_state(str[vars.i], &vars.in_quotes);
+		if (!is_valid_redir(&str, &vars))
+			return (0);
+	}
 	return (1);
 }

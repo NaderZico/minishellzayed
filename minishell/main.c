@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 12:28:32 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/13 16:01:34 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/16 13:16:20 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ static int	validate_input(t_pipe *pipe, t_cmds *cmds, char *read)
 {
 	if (is_blank(read))
 		return (1);
-	if (!is_valid_redir(read))
+	if (!validate_redirs(read))
 	{
 		printf("syntax error near unexpected token \n");
 		add_history(read);

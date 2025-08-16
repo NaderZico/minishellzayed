@@ -6,7 +6,7 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:47 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/14 16:32:42 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/16 13:22:26 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,10 +104,11 @@ void	expand_dollar_vars(char **str, t_pipe *pipe)
 	var.i = 0;
 	var.in_d_quotes = 0;
 	var.in_quotes = 0;
+	var.quote_char = 0;
 	while ((*str)[var.i])
 	{
 		update_quote_state((*str)[var.i], &var.quote_char);
-		if ((*str)[var.i] == '$' && !var.in_quotes && (*str)[var.i + 1])
+		if ((*str)[var.i] == '$' && var.quote_char != '\'')
 		{
 			if (expand_env_var(str, expanded, &var))
 				continue ;
