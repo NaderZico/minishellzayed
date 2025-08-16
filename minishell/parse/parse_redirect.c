@@ -6,31 +6,26 @@
 /*   By: nakhalil <nakhalil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/30 16:53:23 by zsid-ele          #+#    #+#             */
-/*   Updated: 2025/08/16 13:39:31 by nakhalil         ###   ########.fr       */
+/*   Updated: 2025/08/16 17:27:38 by nakhalil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-static int	is_valid_redir(char **str, t_vars *v)
+static int	validate_redir_syntax(char *str, t_vars *vars)
 {
-	if ((*str)[v->i] == '>' || (*str)[v->i] == '<')
-	{
-		v->i++;
-		if (((*str)[v->i] == '<' && (*str)[v->i - 1] == '<')
-			|| ((*str)[v->i] == '>' && (*str)[v->i - 1] == '>'))
-			v->i++;
-		while ((*str)[v->i] == ' ' || (*str)[v->i] == '\t')
-			v->i++;
-		if (((*str)[v->i] == '>' || (*str)[v->i] == '<') && (!v->in_quotes))
-			return (0);
-		while ((*str)[v->i] == ' ' || (*str)[v->i] == '\t')
-			v->i++;
-		if ((*str)[v->i] == '\0' || ((*str)[v->i] == '|' && !v->in_quotes))
-			return (0);
-	}
-	else
-		v->i++;
+	vars->i++;
+	if ((str[vars->i] == '<' && str[vars->i - 1] == '<') || (str[vars->i] == '>'
+			&& str[vars->i - 1] == '>'))
+		vars->i++;
+	while (str[vars->i] == ' ' || str[vars->i] == '\t')
+		vars->i++;
+	if ((str[vars->i] == '>' || str[vars->i] == '<') && !vars->in_quotes)
+		return (0);
+	while (str[vars->i] == ' ' || str[vars->i] == '\t')
+		vars->i++;
+	if (str[vars->i] == '\0' || (str[vars->i] == '|' && !vars->in_quotes))
+		return (0);
 	return (1);
 }
 
@@ -61,8 +56,13 @@ int	validate_redirs(char *str)
 	while (str[vars.i])
 	{
 		update_quote_state(str[vars.i], &vars.in_quotes);
-		if (!is_valid_redir(&str, &vars))
-			return (0);
+		if ((str[vars.i] == '>' || str[vars.i] == '<') && !vars.in_quotes)
+		{
+			if (!validate_redir_syntax(str, &vars))
+				return (0);
+			continue ;
+		}
+		vars.i++;
 	}
 	return (1);
 }
